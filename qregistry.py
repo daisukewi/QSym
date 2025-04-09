@@ -65,7 +65,7 @@ class QRegistry:
 
         log("dim:", gate_matrix.shape, "-", self.state.shape)
         
-        #scipy multiply
+        #scipy multiply using dot() does a pretty bad job compared to the @ operator
         #self.state = gate_matrix.dot(self.state)
         self.state = gate_matrix @ self.state
 
@@ -85,7 +85,11 @@ class QRegistry:
             return self.__apply_gate(gates[0].matrix, targets[0])
 
         gate_matrix = sp.coo_matrix([1])
+
+        # Sort the gates and targets by target index
+        # This is important to avoid the creation of a large sparse matrix
         gates_list = sorted(list(zip(gates, targets)), key=lambda x: x[1])
+
         for i in range(len(gates_list)):
             gate, target = gates_list[i]
             gates_between = int(target - gates_list[i-1][1] - (math.log2(gate.matrix.shape[0]) - 1) - 1) if i > 0 else 0

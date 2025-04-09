@@ -114,7 +114,7 @@ print("State before measurement:\n", registry.get_state())
 
 # Measure both qubits (0 and 1)
 # A random number generator can be optionally provided
-measurement_results = registry.measure([0, 1]) # or registry.parallel_measure([0, 1])
+measurement_results = registry.measure([0, 1])
 print("Measurement results:", measurement_results)
 
 # The state vector is now collapsed to the measured state (e.g., |00⟩ or |11⟩)
@@ -141,13 +141,13 @@ print(f"Probability of measuring |1⟩ on qubit 0: {prob_1:.4f}") # Should be ~0
 
 * `__init__(self, n_qubits: int)`: Constructor. Initializes a registry with n_qubits in the |0...0⟩ state.
 * `get_state(self) -> np.array`: Returns the current state vector as a NumPy complex array of shape (2<sup>n_qubits</sup>).
-* `apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int])`: Applies one or more gates to the specified target qubits. Modifies the internal state vector. Internally uses sparse matrix operations for multi-qubit gates. This saves memory and we can reduce time complexity from Θ(n<sup>3</sup>) to Θ(n<sup>2.371552</sup>).>
-* `probability(self, qubit: int) -> float`: Calculates the probability P(1) for the given qubit index without modifying the state.
-* `parallel_probability(self, qubit: int) -> float`: A parallelized version of probability, potentially faster for large numbers of qubits. Uses the multiprocessing pool initialized in the constructor.
-* `measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: Simulates measuring the specified qubit(s). Returns a list of outcomes (0 or 1). Collapses the state vector. Optionally accepts a custom random number generating function rand (which should return floats between 0.0 and 1.0). Uses probability internally.
-* `parallel_measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: A parallelized version of measure. Uses parallel_probability and a parallelized collapse mechanism. Collapses the state vector.
+* `apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int])`: Applies one or more gates to the specified target qubits. Modifies the internal state vector. Internally uses sparse matrix operations for multi-qubit gates. This saves memory and we can reduce time complexity from Θ(n<sup>3</sup>) to Θ(n<sup>2.371552</sup>).
+* `probability(self, qubit: int) -> float`: Calculates the probability P(1) for the given qubit index without modifying the state. Instead of going through all the states, it only access the states where the qubit is in the |1⟩ state, reducing the time complexity from Θ(2<sup>n</sup>) to Θ(2<sup>n-1</sup>).
+* `parallel_probability(self, qubit: int) -> float`: A parallelized version of probability, potentially faster for large numbers of qubits. Uses the multiprocessing pool initialized in the constructor. `Note: It takes longer than using the single thread version 😂.`
+* `measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: Simulates measuring the specified qubit(s). Returns a list of outcomes (0 or 1). Collapses the state vector. Optionally accepts a custom random number generating function rand (which should return floats between 0.0 and 1.0).
+* `parallel_measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: A parallelized version of measure. Uses parallel_probability and a parallelized collapse mechanism. Collapses the state vector.  `Note: Surprisingly, this actually takes less time than the single thread version 😲.`
 * `density_matrix(self) -> np.array`: Calculates and returns the density matrix ρ = |ψ⟩⟨ψ| for the current state vector |ψ⟩. Returns a NumPy array of shape (2<sup>n_qubits</sup>, 2<sup>n_qubits</sup>).
-* `bloch_angles(self) -> tuple[float, float]`: For single-qubit systems only (n_qubits=1), calculates the polar angle θ and azimuthal angle φ representing the state on the Bloch sphere. Raises a ValueError if n_qubits != 1. Returns (theta, phi).
+* `bloch_angles(self) -> tuple[float, float]`: For single-qubit systems only (n_qubits=1), calculates the polar angle θ and azimuthal angle φ representing the state on the Bloch sphere. Returns (theta, phi).
 
 ## Example: Creating and Measuring a Bell State
 
@@ -185,18 +185,18 @@ print("Measurement outcome:", results) # Expect [0, 0] or [1, 1]
 print("\nState after measurement:\n", registry.get_state()) # Expect |00⟩ or |11⟩
 ```
 
+## More Examples
+
+The file `main.py` contains some test batteries that I have used during the develpment of the project. The code is easy to read, so feel free to use it to get some inspiration on how to use the `QRegistry` class.
+
 ## Notes on Parallelism
 
 * The `parallel_probability` and `parallel_measure` methods attempt to speed up calculations using Python's `multiprocessing.Pool`.
 * The number of worker processes can be adjusted by changing `MAX_THREADS` within `qregistry.py`.
 * The overhead of creating processes might make the parallel versions slower for systems with a small number of qubits. Performance benefits are typically seen for larger `n_qubits`.
 * The `PROC_OFFSET` constant in `qregistry.py` controls the chunk size for parallel processing tasks.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues to discuss potential improvements or bug fixes.
+* `MAX_THREADS` & `PROC_OFFSET` must be tweaked for better results... but I don't have enough time to try every combination.
 
 ## License
 
-This project is licensed under the MIT License.
-
+This project is licensed under the MIT License. Because every project needs to have a licence 😉.
