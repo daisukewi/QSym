@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import scipy.sparse as sp
+from scipy.linalg import logm
 from typing import Callable, Union, List
 from gates import Gate
 
@@ -128,3 +129,8 @@ class QDensity:
             self.density_matrix = (projector @ self.density_matrix @ projector) / trace
 
         return values
+    
+    def calculate_entropy(self) -> float:
+        log_rho = logm(self.density_matrix, disp=False)[0]
+        log("log_rho:\n", log_rho)
+        return -np.trace(self.density_matrix * log_rho).real

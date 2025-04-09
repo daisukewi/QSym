@@ -170,7 +170,48 @@ def test_density_probabilities():
     print("Measure: ", d.measure([0, 1, 2]))
     print("\nrho:\n", d.get_density)
 
+def test_density_entropy():
+    state_probabilities = [
+        (0.1, 0),  # P(|000>)
+        (0.0, 1),  # P(|001>)
+        (0.2, 2),  # P(|010>)
+        (0.1, 3),  # P(|011>)
+        (0.05, 4), # P(|100>)
+        (0.15, 5), # P(|101>)
+        (0.3, 6),  # P(|110>)
+        (0.1, 7)   # P(|111>)
+    ]
+    d = QDensity(3, state_probabilities)
+
+    print("rho:\n", d.get_density)
+    print("\nEntropy:", d.calculate_entropy())
+
+    d.apply_gates(Gate.H(), 0)
+    d.apply_gates(Gate.CNOT(), 1)
+    print("rho:\n", d.get_density)
+    print("\nEntropy ∣Φ+⟩:", d.calculate_entropy())
+
+    d = QDensity(3, state_probabilities)
+    d.apply_gates(Gate.X(), 0)
+    d.apply_gates(Gate.H(), 0)
+    d.apply_gates(Gate.CNOT(), 1)
+    print("rho:\n", d.get_density)
+    print("\nEntropy ∣Φ−⟩:", d.calculate_entropy())
+
+    d = QDensity(3, state_probabilities)
+    d.apply_gates([Gate.H(), Gate.X()], [0, 1])
+    d.apply_gates(Gate.CNOT(), 1)
+    print("rho:\n", d.get_density)
+    print("\nEntropy ∣Ψ+⟩:", d.calculate_entropy())
+
+    d = QDensity(3, state_probabilities)
+    d.apply_gates(Gate.X(), [0, 1])
+    d.apply_gates(Gate.H(), 0)
+    d.apply_gates(Gate.CNOT(), 1)
+    print("rho:\n", d.get_density)
+    print("\nEntropy ∣Ψ-⟩:", d.calculate_entropy())
+
 if __name__ == '__main__':
 
-    test_density_probabilities()
+    test_density_entropy()
 
