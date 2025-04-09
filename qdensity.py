@@ -16,18 +16,39 @@ def log(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
 
+# Get the position of the qubit in the state
+# This avoids the iteration through all indexes in:
+#  'for i in range(self.n_states) if i & mask != 0'
+# Improving the performance from O(2^n) to O(2^(n-1))
+# qubit: qubit number
+# i: index relative to the list of masked qubits
+def pos_0(qubit : int, i : int) -> int:
+    mask = 1 << qubit
+    return mask*2*(i>>qubit) + (i & (mask - 1))
+
+def pos_1(qubit : int, i : int) -> int:
+    return pos_0(qubit, i) + (1 << qubit)
+
+def prob_state(states: np.ndarray, state: int) -> float:
+    return np.real(states[state, state])
+
 class QDensity:
-    def __init__(self, n_qubits: int, prob : List[float] = None):
+    # Initialize the density matrix for a given number of qubits
+    # and optional probabilities for the states.
+    # prob: list of tuples (probability, state_index)
+    def __init__(self, n_qubits: int, prob : List[tuple[float, int]] = None):
         self.n_qubits = n_qubits
         self.density_matrix = np.zeros((self.n_states, self.n_states), dtype=complex)
-        self.density_matrix[0, 0] = 1.0+0j
         self.__rng = np.random.default_rng(SEED)
 
-        # for p in prob:
-        #     rnd_value = self.__rng.random()
-        #     self.density_matrix[p[1], p[1]] = 1 if rnd_value < p[0] else 0
+        if prob is None:
+            # initialize the pure state density matrix for the |0><0| state
+            self.density_matrix[0, 0] = 1.0+0j
+        else:
+            # initialize the mixed states density matrix with the given probabilities
+            for p in prob:
+                self.density_matrix[p[1], p[1]] = p[0]
             
-
     @property
     def n_states(self) -> int:
         return 2**self.n_qubits
@@ -70,3 +91,26 @@ class QDensity:
             gate_matrix = sp.kron(sp.kron(gate.matrix, Gate.I(gates_between).matrix, format=gate_matrix.format), gate_matrix, format=gate_matrix.format)
         
         self.__apply_gate(gate_matrix, gates_list[-1][1])
+    
+    def probability(self, qubit: int) -> float:
+        sum_prob = 0.0
+        for i in range(2**(self.n_qubits-1)):
+            log(f"qubit: {qubit}, i: {i}, pos: {pos_1(qubit,i)}")
+            sum_prob += prob_state(self.density_matrix, pos_1(qubit,i))
+        return max(min(sum_prob, 1.0), 0.0)
+
+    def measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list:
+        if rand is None:
+            rand = self.__rng.random
+        if isinstance(qubits, int):
+            qubits = [qubits]
+        
+        values = [0 for _ in range(len(qubits))]
+        for qubit in range(len(qubits)):
+            prob_one = self.probability(qubits[qubit])
+            rnd_value = rand()
+            log("Prob:", prob_one, "- Rand:", rnd_value)
+            values[qubit] = 1 if rnd_value < prob_one else 0
+            #self.__collapse(qubits[qubit], values[qubit], prob_one)
+
+        return values

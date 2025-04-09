@@ -139,7 +139,38 @@ def test_density():
     
     print("Density Matrix:\n", r.density_matrix())
 
+def test_density_with_noise():
+    state_probabilities = [
+        (0.1, 0),  # P(|000>)
+        (0.0, 1),  # P(|001>)
+        (0.2, 2),  # P(|010>)
+        (0.1, 3),  # P(|011>)
+        (0.05, 4), # P(|100>)
+        (0.15, 5), # P(|101>)
+        (0.3, 6),  # P(|110>)
+        (0.1, 7)   # P(|111>)
+    ]
+    d = QDensity(3, state_probabilities)
+    rho = d.get_density
+    print("Density Matrix:\n", rho)
+    print(f"\nTrace of rho: {np.trace(rho)}")
+
+def test_density_probabilities():
+    # Probabilty Tests
+    d = QDensity(3)
+
+    d.apply_gates(Gate.H(), 0)
+    d.apply_gates(Gate.CNOT(), 1)
+    d.apply_gates(Gate.CNOT(), 2)
+
+    print("rho:\n", d.get_density)
+    print(f"\nProb 1: {d.probability(0):0.2f}")
+    print(f"Prob 2: {d.probability(1):0.2f}")
+    print(f"Prob 3: {d.probability(2):0.2f}")
+
+    #print("Measure: ", d.measure([0, 1, 2]))
+
 if __name__ == '__main__':
 
-    test_multiprocessing()
+    test_density_probabilities()
 
