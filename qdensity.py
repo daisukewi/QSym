@@ -32,6 +32,16 @@ def pos_1(qubit : int, i : int) -> int:
 def prob_state(states: np.ndarray, state: int) -> float:
     return np.real(states[state, state])
 
+# Create a projector matrix for a given qubit.
+def make_projector(n_qubits: int, qubit: int, value: int) -> np.ndarray:
+    projector = np.zeros((2**n_qubits, 2**n_qubits), dtype=complex)
+
+    for i in range(2**(n_qubits-1)):
+        index = pos_0(qubit, i) if value == 0 else pos_1(qubit, i)
+        projector[index, index] = 1.0 + 0j
+
+    return projector
+
 class QDensity:
     # Initialize the density matrix for a given number of qubits
     # and optional probabilities for the states.
