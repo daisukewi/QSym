@@ -161,14 +161,14 @@ def test_density_probabilities():
 
     d.apply_gates(Gate.H(), 0)
     d.apply_gates(Gate.CNOT(), 1)
-    d.apply_gates(Gate.CNOT(), 2)
 
     print("rho:\n", d.get_density)
     print(f"\nProb 1: {d.probability(0):0.2f}")
     print(f"Prob 2: {d.probability(1):0.2f}")
     print(f"Prob 3: {d.probability(2):0.2f}")
 
-    #print("Measure: ", d.measure([0, 1, 2]))
+    print("Measure: ", d.measure([0, 1, 2]))
+    print("\nrho:\n", d.get_density)
 
 if __name__ == '__main__':
 

@@ -121,6 +121,10 @@ class QDensity:
             rnd_value = rand()
             log("Prob:", prob_one, "- Rand:", rnd_value)
             values[qubit] = 1 if rnd_value < prob_one else 0
-            #self.__collapse(qubits[qubit], values[qubit], prob_one)
+            
+            # Collapse the density matrix to the measured state
+            projector = make_projector(self.n_qubits, qubits[qubit], values[qubit])
+            trace = np.real(np.trace(self.density_matrix @ projector))
+            self.density_matrix = (projector @ self.density_matrix @ projector) / trace
 
         return values
