@@ -3,7 +3,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.linalg import logm
 from typing import Callable, Union, List
-from gates import Gate
+from gates import Gate, partial_trace
 
 DEBUG = False
 SEED = None
@@ -129,6 +129,21 @@ class QDensity:
             self.density_matrix = (projector @ self.density_matrix @ projector) / trace
 
         return values
+    
+    # Calculate the partial trace of the density matrix, removing the specified qubits
+    # indices: list of qubit indices to be traced out
+    def partial_trace(self, indices: Union[List[int], int]) -> np.ndarray:
+        if isinstance(indices, int):
+            indices = [indices]
+        if len(indices) == 0:
+            return self.density_matrix
+        
+        # Make sure the qubits are sorted
+        indices.sort()
+
+        
+
+        return partial_trace(self.density_matrix, self.n_qubits, indices)
     
     def calculate_entropy(self) -> float:
         log_rho = logm(self.density_matrix, disp=False)[0]

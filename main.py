@@ -1,6 +1,6 @@
 from multiprocessing import Pool
 import time
-from gates import Gate
+from gates import Gate, partial_trace
 import numpy as np
 from qregistry import QRegistry
 from qdensity import QDensity
@@ -211,7 +211,20 @@ def test_density_entropy():
     print("rho:\n", d.get_density)
     print("\nEntropy ∣Ψ-⟩:", d.calculate_entropy())
 
+def test_density_partial_trace():
+    # d = QDensity(3)
+    # d.apply_gates(Gate.H(), [0, 2])
+    # d.apply_gates(Gate.CNOT(), 1)
+
+    # print("rho:\n", d.get_density)
+    # print("\nTrace of rho:", np.trace(d.get_density))
+    # print("Partial Trace rho:\n", d.partial_trace([1]))
+
+    x = np.array([[1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16], [17, 18, 19, 20, 21, 22, 23, 24], [25, 26, 27, 28, 29, 30, 31, 32],
+                  [33, 34, 35, 36, 37, 38, 39, 40], [41, 42, 43, 44, 45, 46, 47, 48], [49, 50, 51, 52, 53, 54, 55, 56], [57, 58, 59, 60, 61, 62, 63, 64]])
+    print("partial trace:\n", partial_trace(x, 3, [2]))
+
 if __name__ == '__main__':
 
-    test_density_entropy()
+    test_density_partial_trace()
 
