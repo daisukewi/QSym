@@ -28,7 +28,7 @@ def pos_1(qubit : int, i : int) -> int:
     return pos_0(qubit, i) + (1 << qubit)
 
 def prob_state_reg(states: np.ndarray, state: int) -> float:
-        return (abs(states[state, 0])**2)
+    return (abs(states[state, 0])**2)
 
 def prob_state_dens(states: np.ndarray, state: int) -> float:
     return np.real(states[state, state])

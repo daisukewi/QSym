@@ -44,9 +44,70 @@ class QRegistry:
 
         if DEBUG:
             log(self.get_state())
+            log("Probability:", end=" ")
             for i in range(self.n_qubits):
                 log(self.probability(i), end=" ")
             log("\n")
+
+
+    def apply_c_gate(self, gate: Gate, target: int, control: int):
+        if target <= control:
+            raise ValueError("Target qubit must be greater than control qubit")
+        
+        swap_matrix = sp.coo_matrix([1])
+        distance = target - control
+
+        if distance == 0:
+            return self.__apply_gate(gate.matrix, target)
+
+        for d in range(distance):
+            log("x SWAP", end=" ")
+            self.__apply_gate(Gate.SWAP().matrix, target-d)
+
+        log("x C_GATE", end=" ")
+        self.__apply_gate(gate.matrix, control)
+
+        for d in range(distance):
+            log("x SWAP", end=" ")
+            self.__apply_gate(Gate.SWAP().matrix, control + d + 1)
+    
+    def apply_mc_gate(self, gate: Gate, target: int, controls: Union[List[int], int]):
+        if isinstance(controls, int):
+            controls = [controls]
+        
+        controls = sorted(controls)
+        n_controls = len(controls)
+
+        if target <= controls[-1]:
+            raise ValueError("Target qubit must be greater than control qubits")
+        
+        if n_controls == 1 and target - controls[0] == 1:
+            return self.__apply_gate(gate.matrix, target)
+        
+        controls.append(target)
+        print("Target:", target, "Controls:", controls)
+        
+        gate_matrix = gate.matrix
+
+        for i in range(n_controls, 0, -1):
+            if i > 0:
+                distance = controls[i] - controls[i-1] - 1
+                if distance > 0:
+                    for d in range(distance):
+                        print("x SWAP", end=" ")
+                        gate_matrix = sp.kron(Gate.SWAP().matrix, gate_matrix, format="coo")
+                else:
+                    print("x CNOT", end=" ")
+                    gate_matrix = sp.kron(gate.matrix, gate_matrix, format=gate_matrix.format)
+
+        #gate_matrix = sp.kron(gate_matrix, gate.matrix, format=gate_matrix.format)
+
+        print(f"x CNOT x Q[{target}]", end="\n")
+
+        print("State:\n", self.get_state())
+        print("Matrix:\n", gate_matrix.todense())
+        
+        self.__apply_gate(gate_matrix, target)
     
     def apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int]):
         if isinstance(targets, int):
@@ -75,7 +136,7 @@ class QRegistry:
     def probability(self, qubit: int) -> float:
         sum_prob = 0.0
         for i in range(2**(self.n_qubits-1)):
-            log(f"qubit: {qubit}, i: {i}, pos: {pos_1(qubit,i)}")
+            #log(f"qubit: {qubit}, i: {i}, pos: {pos_1(qubit,i)}")
             sum_prob += prob_state_reg(self.state, pos_1(qubit,i))
         return max(min(sum_prob, 1.0), 0.0)
     
@@ -85,7 +146,7 @@ class QRegistry:
         qubit_range = PROC_OFFSET if offset + PROC_OFFSET < max_size else max_size - offset
 
         for i in range(qubit_range):
-            log(f"qubit: {qubit}, i: {offset + i}, pos: {pos_1(qubit, offset + i)}")
+            #log(f"qubit: {qubit}, i: {offset + i}, pos: {pos_1(qubit, offset + i)}")
             sum_prob += prob_state_reg(state, pos_1(qubit, offset + i))
         
         return sum_prob
