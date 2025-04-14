@@ -4,34 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 from typing import Callable, Union, List
 from gates import Gate
-
-DEBUG = False
-SEED = None
-PROC_OFFSET = 2**12
-MAX_THREADS = 8
-
-if DEBUG:
-    SEED = 6470
-
-def log(*args, **kwargs):
-    if DEBUG:
-        print(*args, **kwargs)
-
-# Get the position of the qubit in the state
-# This avoids the iteration through all indexes in:
-#  'for i in range(self.n_states) if i & mask != 0'
-# Improving the performance from O(2^n) to O(2^(n-1))
-# qubit: qubit number
-# i: index relative to the list of masked qubits
-def pos_0(qubit : int, i : int) -> int:
-    mask = 1 << qubit
-    return mask*2*(i>>qubit) + (i & (mask - 1))
-
-def pos_1(qubit : int, i : int) -> int:
-    return pos_0(qubit, i) + (1 << qubit)
-
-def prob_state(states: np.ndarray, state: int) -> float:
-        return (abs(states[state, 0])**2)
+from helper import DEBUG, PROC_OFFSET, log, SEED, MAX_THREADS, pos_1, prob_state_reg
 
 class QRegistry:
     def __init__(self, n_qubits: int):
@@ -103,7 +76,7 @@ class QRegistry:
         sum_prob = 0.0
         for i in range(2**(self.n_qubits-1)):
             log(f"qubit: {qubit}, i: {i}, pos: {pos_1(qubit,i)}")
-            sum_prob += prob_state(self.state, pos_1(qubit,i))
+            sum_prob += prob_state_reg(self.state, pos_1(qubit,i))
         return max(min(sum_prob, 1.0), 0.0)
     
     @staticmethod
@@ -113,7 +86,7 @@ class QRegistry:
 
         for i in range(qubit_range):
             log(f"qubit: {qubit}, i: {offset + i}, pos: {pos_1(qubit, offset + i)}")
-            sum_prob += prob_state(state, pos_1(qubit, offset + i))
+            sum_prob += prob_state_reg(state, pos_1(qubit, offset + i))
         
         return sum_prob
     

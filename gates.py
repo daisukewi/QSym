@@ -1,5 +1,3 @@
-from string import ascii_letters
-from typing import List
 import numpy as np
 
 def make_mtx(values : np.ndarray) -> np.ndarray:
@@ -68,36 +66,3 @@ class Gate():
     @classmethod
     def U(cls, theta: float, phi: float, lambda_: float) -> 'Gate':
         return cls(make_mtx([[np.cos(theta/2), -np.exp(1j*lambda_)*np.sin(theta/2)], [np.exp(1j*phi)*np.sin(theta/2), np.exp(1j*(phi+lambda_))*np.cos(theta/2)]]))
-
-# Returns the reduced density matrix
-# The partial trace is calculated by reshaping the density matrix and using einsum to sum over the traced-out qubits
-def partial_trace(matrix : np.ndarray, num_indices : int, indices : List[int]) -> np.ndarray:
-    rho_dim = 2 * num_indices
-
-    # Split the density matrix into blocks of 2 x 2
-    matrix = np.reshape(matrix, [1] + [2] * rho_dim)
-    print("matrix\n", matrix)
-    print("matrix.shape:", matrix.shape)
-    print("split:", [1] + [2] * rho_dim)
-
-    for i, q_index in enumerate(indices):
-        q_index = q_index - i
-        state_indices = ascii_letters[1 : rho_dim - 2 * i + 1]
-        print("\nstate_indices:", state_indices, "q_index:", q_index, "i:", i)
-        state_indices = list(state_indices)
-
-        target_letter = state_indices[q_index]
-        state_indices[q_index + num_indices - i] = target_letter
-        state_indices = "".join(state_indices)
-        print("target_letter:", target_letter)
-        print("state_indices:", state_indices)
-
-        einsum_indices = f"a{state_indices}"
-        print("einsum_indices:", einsum_indices)
-        matrix = np.einsum(einsum_indices, matrix)
-        print("matrix\n", matrix)
-
-    number_wires_sub = num_indices - len(indices)
-    print("number_wires_sub:", number_wires_sub)
-    reduced_density_matrix = np.reshape(matrix, (1, 2**number_wires_sub, 2**number_wires_sub))
-    return reduced_density_matrix[0]

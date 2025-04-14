@@ -1,47 +1,10 @@
 import math
 import numpy as np
 import scipy.sparse as sp
-from scipy.linalg import logm
+
 from typing import Callable, Union, List
-from gates import Gate, partial_trace
-
-DEBUG = False
-SEED = None
-PROC_OFFSET = 2**12
-MAX_THREADS = 8
-
-if DEBUG:
-    SEED = 6470
-
-def log(*args, **kwargs):
-    if DEBUG:
-        print(*args, **kwargs)
-
-# Get the position of the qubit in the state
-# This avoids the iteration through all indexes in:
-#  'for i in range(self.n_states) if i & mask != 0'
-# Improving the performance from O(2^n) to O(2^(n-1))
-# qubit: qubit number
-# i: index relative to the list of masked qubits
-def pos_0(qubit : int, i : int) -> int:
-    mask = 1 << qubit
-    return mask*2*(i>>qubit) + (i & (mask - 1))
-
-def pos_1(qubit : int, i : int) -> int:
-    return pos_0(qubit, i) + (1 << qubit)
-
-def prob_state(states: np.ndarray, state: int) -> float:
-    return np.real(states[state, state])
-
-# Create a projector matrix for a given qubit.
-def make_projector(n_qubits: int, qubit: int, value: int) -> np.ndarray:
-    projector = np.zeros((2**n_qubits, 2**n_qubits), dtype=complex)
-
-    for i in range(2**(n_qubits-1)):
-        index = pos_0(qubit, i) if value == 0 else pos_1(qubit, i)
-        projector[index, index] = 1.0 + 0j
-
-    return projector
+from gates import Gate
+from helper import calculate_entropy, log, SEED, pos_1, make_projector, partial_trace, prob_state_dens
 
 class QDensity:
     # Initialize the density matrix for a given number of qubits
@@ -107,7 +70,7 @@ class QDensity:
         sum_prob = 0.0
         for i in range(2**(self.n_qubits-1)):
             log(f"qubit: {qubit}, i: {i}, pos: {pos_1(qubit,i)}")
-            sum_prob += prob_state(self.density_matrix, pos_1(qubit,i))
+            sum_prob += prob_state_dens(self.density_matrix, pos_1(qubit,i))
         return max(min(sum_prob, 1.0), 0.0)
 
     def measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list:
@@ -132,20 +95,10 @@ class QDensity:
     
     # Calculate the partial trace of the density matrix, removing the specified qubits
     # indices: list of qubit indices to be traced out
-    def partial_trace(self, indices: Union[List[int], int]) -> np.ndarray:
-        if isinstance(indices, int):
-            indices = [indices]
-        if len(indices) == 0:
-            return self.density_matrix
-        
-        # Make sure the qubits are sorted
-        indices.sort()
-
-        
-
-        return partial_trace(self.density_matrix, self.n_qubits, indices)
+    def partial_trace(self, index: int) -> np.ndarray:
+        return partial_trace(self.density_matrix, self.n_qubits, index)
     
     def calculate_entropy(self) -> float:
-        log_rho = logm(self.density_matrix, disp=False)[0]
-        log("log_rho:\n", log_rho)
-        return -np.trace(self.density_matrix * log_rho).real
+        return calculate_entropy(self.density_matrix)
+    
+    
