@@ -3,8 +3,15 @@ from gates import Gate
 from helper import prob_state_reg
 from qregistry import QRegistry
 
-
 def deutsch_jozsa():
+    '''
+    Deutsch-Jozsa Algorithm
+
+    Demo in Quirk:
+    https://algassert.com/quirk#circuit={%22cols%22:[[%22H%22,%22H%22,%22H%22,%22H%22,%22X%22],[1,1,1,1,%22H%22],[%22X%22,1,1,%22X%22],[%22%E2%80%A2%22,1,1,1,%22X%22],[1,%22%E2%80%A2%22,1,1,%22X%22],[1,1,%22%E2%80%A2%22,1,%22X%22],[1,1,1,%22%E2%80%A2%22,%22X%22],[%22X%22,1,1,%22X%22],[%22H%22,%22H%22,%22H%22,%22H%22],[%22Measure%22,%22Measure%22,%22Measure%22,%22Measure%22]]}
+    
+    '''
+
     q_qubits = 4
     r = QRegistry(q_qubits + 1)
 
@@ -12,7 +19,6 @@ def deutsch_jozsa():
     r.apply_gates(Gate.X(), 4)
     r.apply_gates(Gate.H(), 4)
     
-
     # Apply the oracle for balanced function f(x)
     r.apply_gates(Gate.X(), [0, 3])
     r.apply_c_gate(Gate.CNOT(), 4, 0)
@@ -35,8 +41,6 @@ def deutsch_jozsa():
         print("The function is constant.")
     else:
         print("The function is balanced.")
-
-    return
 
 if __name__ == '__main__':
 
