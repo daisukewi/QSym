@@ -49,13 +49,13 @@ class QRegistry:
                 log(self.probability(i), end=" ")
             log("\n")
 
-
     def apply_c_gate(self, gate: Gate, target: int, control: int):
         if target <= control:
             raise ValueError("Target qubit must be greater than control qubit")
         
-        swap_matrix = sp.coo_matrix([1])
-        distance = target - control
+        gate_distance = gate.matrix.shape[0] // 2 - 1
+        
+        distance = target - (control + gate_distance)
 
         if distance == 0:
             return self.__apply_gate(gate.matrix, target)
@@ -65,49 +65,42 @@ class QRegistry:
             self.__apply_gate(Gate.SWAP().matrix, target-d)
 
         log("x C_GATE", end=" ")
-        self.__apply_gate(gate.matrix, control)
+        self.__apply_gate(gate.matrix, control+gate_distance)
 
         for d in range(distance):
             log("x SWAP", end=" ")
-            self.__apply_gate(Gate.SWAP().matrix, control + d + 1)
-    
-    def apply_mc_gate(self, gate: Gate, target: int, controls: Union[List[int], int]):
-        if isinstance(controls, int):
-            controls = [controls]
-        
-        controls = sorted(controls)
-        n_controls = len(controls)
+            self.__apply_gate(Gate.SWAP().matrix, target - distance + d + gate_distance)
 
-        if target <= controls[-1]:
-            raise ValueError("Target qubit must be greater than control qubits")
+    def apply_mc_gate(self, gate : Gate, target : int, controls : list[int]):
+        if len(controls) == 0:
+            return self.apply_gates(gate, target)
         
-        if n_controls == 1 and target - controls[0] == 1:
-            return self.__apply_gate(gate.matrix, target)
+        gate_matrix = sp.coo_matrix([1])
         
-        controls.append(target)
-        print("Target:", target, "Controls:", controls)
-        
-        gate_matrix = gate.matrix
+        # Create the controlled gate matrix
+        for i in range(self.n_qubits):
+            if i in controls:
+                gate_matrix = sp.kron(sp.coo_matrix([[1, 0], [0, 0]]), gate_matrix, format=gate_matrix.format)
+            elif i == target:
+                gate_matrix = sp.kron(gate.matrix, gate_matrix, format=gate_matrix.format)
+            else:
+                gate_matrix = sp.kron(sp.identity(2, dtype=complex), gate_matrix, format=gate_matrix.format)
 
-        for i in range(n_controls, 0, -1):
-            if i > 0:
-                distance = controls[i] - controls[i-1] - 1
-                if distance > 0:
-                    for d in range(distance):
-                        print("x SWAP", end=" ")
-                        gate_matrix = sp.kron(Gate.SWAP().matrix, gate_matrix, format="coo")
-                else:
-                    print("x CNOT", end=" ")
-                    gate_matrix = sp.kron(gate.matrix, gate_matrix, format=gate_matrix.format)
+        # Add the control condition
+        for i in range(2**(self.n_qubits - 1)):
+            binary = bin(i)[2:].zfill(self.n_qubits)
+            control_match = True
+            for c in controls:
+                if binary[c] == '0':
+                    control_match = False
+                    break
+            if control_match:
+                continue
+            gate_matrix[i, i] = 1
 
-        #gate_matrix = sp.kron(gate_matrix, gate.matrix, format=gate_matrix.format)
-
-        print(f"x CNOT x Q[{target}]", end="\n")
-
-        print("State:\n", self.get_state())
-        print("Matrix:\n", gate_matrix.todense())
-        
         self.__apply_gate(gate_matrix, target)
+
+        return
     
     def apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int]):
         if isinstance(targets, int):
@@ -210,6 +203,14 @@ class QRegistry:
             self.__parallel_collapse(qubits[qubit], values[qubit], prob_one)
 
         return values
+    
+    def print_probabilities(self, until : int = None):
+        if until is None:
+            until = self.n_states
+
+        for q in range(until):
+            prob = prob_state_reg(self.get_state(), q)
+            print(f"|{bin(q)[2:].zfill(self.n_qubits)}> = {prob:0.6f}")
     
     # Calculate the Bloch Sphere angles
     # from the State Vector |ψ⟩ = α|0⟩ + β|1⟩
