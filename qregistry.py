@@ -15,6 +15,10 @@ class QRegistry:
         self.pool = Pool(MAX_THREADS)
         log(f"QRegistry Size: {self.n_states}")
 
+    def __del__(self):
+        self.pool.close()
+        self.pool.join()
+
     @property
     def n_states(self) -> int:
         return 2**self.n_qubits
@@ -205,3 +209,6 @@ class QRegistry:
 
         log(f"Bloch Sphere |-> φ = {phi:0.4f} - θ = {theta:0.4f}\n")
         return phi, theta
+    
+    def draw_bloch_sphere(self):
+        
