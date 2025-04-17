@@ -29,6 +29,10 @@ The `QRegistry` class manages the state vector of a quantum system composed of a
     ```bash
     pip install scipy
     ```
+*   **Matplotlib:** A comprehensive library for creating static, animated, and interactive visualizations in Python.
+    ```bash
+    pip install matplotlib
+    ```
 *   **`gates.py`:** This file must be present in the same directory or accessible in your Python path. It defines the `Gate` class and standard quantum gates (H, X, CNOT, etc.).
 
 ## Getting Started
@@ -139,16 +143,17 @@ print(f"Probability of measuring |1⟩ on qubit 0: {prob_1:.4f}") # Should be ~0
 
 ## Key Methods Reference
 
-* `__init__(self, n_qubits: int)`: Constructor. Initializes a registry with n_qubits in the |0...0⟩ state.
-* `get_state(self) -> np.array`: Returns the current state vector as a NumPy complex array of shape (2<sup>n_qubits</sup>).
-* `apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int])`: Applies one or more gates to the specified target qubits. Modifies the internal state vector. Internally uses sparse matrix operations for multi-qubit gates. This saves memory and we can reduce time complexity from Θ(n<sup>3</sup>) to Θ(n<sup>2.371552</sup>).
-* `apply_c_gate(self, gate: Gate, target: int, control: int)`: Applies a controlled gate operation on the selected target qubit register. Handles the necessary SWAP operations to align the qubits for the gate application.
+* `__init__(self, n_qubits: int)`: Constructor. Initializes a registry with n_qubits in the |0...0⟩ state. Time complexity is O(2<sup>n</sup>).
+* `get_state(self) -> np.array`: Returns the current state vector as a NumPy complex array of shape (2<sup>n_qubits</sup>). Time complexity is O(1).
+* `apply_gates(self, gates: Union[List[Gate], Gate], targets: Union[List[int], int])`: Applies one or more gates to the specified target qubits. Modifies the internal state vector. Internally uses sparse matrix operations for multi-qubit gates. This saves memory and we can reduce time complexity from Θ(n<sup>3</sup>) to Θ(2<sup>n</sup>).
+* `apply_c_gate(self, gate: Gate, target: int, control: int)`: Applies a controlled gate operation on the selected target qubit register. Handles the necessary SWAP operations to align the qubits for the gate application. Time complexity is O(n*2<sup>n</sup>)
 * `probability(self, qubit: int) -> float`: Calculates the probability P(1) for the given qubit index without modifying the state. Instead of going through all the states, it only access the states where the qubit is in the |1⟩ state, reducing the time complexity from Θ(2<sup>n</sup>) to Θ(2<sup>n-1</sup>).
 * `parallel_probability(self, qubit: int) -> float`: A parallelized version of probability, potentially faster for large numbers of qubits. Uses the multiprocessing pool initialized in the constructor. `Note: It takes longer than using the single thread version 😂.`
-* `measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: Simulates measuring the specified qubit(s). Returns a list of outcomes (0 or 1). Collapses the state vector. Optionally accepts a custom random number generating function rand (which should return floats between 0.0 and 1.0).
+* `measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: Simulates measuring the specified qubit(s). Returns a list of outcomes (0 or 1). Collapses the state vector. Optionally accepts a custom random number generating function rand (which should return floats between 0.0 and 1.0). Time complexity is O(2<sup>n</sup> * m) (where m is the number of qubits to measure).
 * `parallel_measure(self, qubits: Union[List[int], int], rand: Callable[[], float] = None) -> list`: A parallelized version of measure. Uses parallel_probability and a parallelized collapse mechanism. Collapses the state vector.  `Note: Surprisingly, this actually takes less time than the single thread version 😲.`
 * `density_matrix(self) -> np.array`: Calculates and returns the density matrix ρ = |ψ⟩⟨ψ| for the current state vector |ψ⟩. Returns a NumPy array of shape (2<sup>n_qubits</sup>, 2<sup>n_qubits</sup>).
-* `bloch_angles(self) -> tuple[float, float]`: For single-qubit systems only (n_qubits=1), calculates the polar angle θ and azimuthal angle φ representing the state on the Bloch sphere. Returns (theta, phi).
+* `print_probabilities(self, until : int = None)`: Prints the probabilities of each state. Useful for debugging. Time complexity is O(2<sup>n</sup>).
+* `bloch_angles(self) -> tuple[float, float]`: For single-qubit systems only (n_qubits=1), calculates the polar angle θ and azimuthal angle φ representing the state on the Bloch sphere. Returns (theta, phi). Time complexity is O(1).
 
 ## Example: Creating and Measuring a Bell State
 

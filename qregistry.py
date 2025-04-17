@@ -25,8 +25,6 @@ class QRegistry:
     def density_matrix(self) -> np.array:
         return np.outer(self.state, np.conj(self.state))
     
-    # Time: Θ(2^2n)
-    # Space: Θ(2^2n)
     def __apply_gate(self, matrix: sp.coo_matrix, target: int):
         log("Gate Size:", matrix.shape[0])
         qbefore = int(target - (math.log2(matrix.shape[0]) - 1))
