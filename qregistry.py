@@ -3,6 +3,7 @@ from multiprocessing import Pool
 import numpy as np
 import scipy.sparse as sp
 from typing import Callable, Union, List
+import matplotlib.pyplot as plt
 from gates import Gate
 from helper import DEBUG, PROC_OFFSET, log, SEED, MAX_THREADS, pos_1, prob_state_reg
 
@@ -190,7 +191,7 @@ class QRegistry:
     # return: θ -> Polar angle, φ -> Azimuth angle
     def bloch_angles(self) -> tuple[float, float]:
         if self.n_qubits != 1:
-            raise ValueError("Bloch sphere can only be calculated for a single qubit")
+            raise ValueError("Bloch sphere can only be calculated for a single qubit registry.")
         
         alpha = self.state[0, 0]
         beta = self.state[1, 0]
@@ -210,5 +211,67 @@ class QRegistry:
         log(f"Bloch Sphere |-> φ = {phi:0.4f} - θ = {theta:0.4f}\n")
         return phi, theta
     
-    def draw_bloch_sphere(self):
-        
+    def draw_bloch_sphere(self, filename: str = None):
+        if self.n_qubits != 1:
+            raise ValueError("Bloch sphere can only be drawn for a single qubit registry.")
+
+        phi, theta = self.bloch_angles()
+
+        # Convert polar coordinates to cartesian coordinates
+        x = np.sin(theta) * np.cos(phi)
+        y = np.sin(theta) * np.sin(phi)
+        z = np.cos(theta)
+
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_box_aspect([1, 1, 1])
+
+        # Draw the sphere surface
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
+        x_sphere = np.outer(np.cos(u), np.sin(v))
+        y_sphere = np.outer(np.sin(u), np.sin(v))
+        z_sphere = np.outer(np.ones(np.size(u)), np.cos(v))
+        ax.plot_surface(x_sphere, y_sphere, z_sphere, color='lightblue', alpha=0.1, rstride=5, cstride=5, linewidth=0.2, edgecolors='gray')
+
+        # Draw the axes lines
+        ax.plot([-1, 1], [0, 0], [0, 0], color='gray', linestyle='--') # X-axis
+        ax.plot([0, 0], [-1, 1], [0, 0], color='gray', linestyle='--') # Y-axis
+        ax.plot([0, 0], [0, 0], [-1, 1], color='gray', linestyle='--') # Z-axis
+
+        # Draw the state vector
+        ax.quiver(0, 0, 0, x, y, z, color='red', length=1.0, arrow_length_ratio=0.1, linewidth=2)
+
+        # Draw points for |0> and |1>
+        ax.scatter(0, 0, 1, color='black', s=50, label='|0⟩')
+        ax.scatter(0, 0, -1, color='black', s=50, label='|1⟩')
+        ax.text(0, 0, 1.2, r'$|0\rangle$', ha='center', va='center', fontsize=12)
+        ax.text(0, 0, -1.2, r'$|1\rangle$', ha='center', va='center', fontsize=12)
+
+        # Draw points for |+> and |->
+        ax.scatter(1, 0, 0, color='black', s=50, label='|+⟩')
+        ax.scatter(-1, 0, 0, color='black', s=50, label='|-⟩')
+        ax.text(1.2, 0, 0, r'$|+\rangle$', ha='center', va='center', fontsize=12)
+        ax.text(-1.2, 0, 0, r'$|-\rangle$', ha='center', va='center', fontsize=12)
+
+        # Draw points for |i> and |-i>
+        ax.scatter(0, 1, 0, color='black', s=50, label='|i⟩')
+        ax.scatter(0, -1, 0, color='black', s=50, label='|-i⟩')
+        ax.text(0, 1.2, 0, r'$|i\rangle$', ha='center', va='center', fontsize=12)
+        ax.text(0, -1.2, 0, r'$|-i\rangle$', ha='center', va='center', fontsize=12)
+
+        # Hide axis
+        ax.axis('off')
+
+        # Set title
+        ax.set_title(f"Bloch Sphere\n|ψ⟩ φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º")
+        ax.view_init(elev=20, azim=30)
+
+        if filename:
+            plt.savefig(filename, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+            log(f"Bloch sphere saved to {filename}")
+        else:
+            plt.show()
+
+        return fig, ax

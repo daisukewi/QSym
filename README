@@ -154,6 +154,7 @@ print(f"Probability of measuring |1⟩ on qubit 0: {prob_1:.4f}") # Should be ~0
 * `density_matrix(self) -> np.array`: Calculates and returns the density matrix ρ = |ψ⟩⟨ψ| for the current state vector |ψ⟩. Returns a NumPy array of shape (2<sup>n_qubits</sup>, 2<sup>n_qubits</sup>).
 * `print_probabilities(self, until : int = None)`: Prints the probabilities of each state. Useful for debugging. Time complexity is O(2<sup>n</sup>).
 * `bloch_angles(self) -> tuple[float, float]`: For single-qubit systems only (n_qubits=1), calculates the polar angle θ and azimuthal angle φ representing the state on the Bloch sphere. Returns (theta, phi). Time complexity is O(1).
+* `draw_bloch_sphere(self, filename: str = None)`: Draws the Bloch sphere representation of the single qubit state using matplotlib. If a filename is provided, it saves the figure image to a file. Time complexity is O(1).
 
 ## Example: Creating and Measuring a Bell State
 

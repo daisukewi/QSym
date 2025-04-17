@@ -48,35 +48,41 @@ def test_angles():
     # Bloch Sphere Angles
     # Link to check the results:
     # https://algassert.com/quirk#circuit={%22cols%22:[[1,%22X%22,%22H%22,%22Z%22,%22X^%C2%BC%22,%22Y^%C2%BC%22],[1,1,1,%22H%22]]}
-    
+
     r = QRegistry(1)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |0> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
     r.apply_gates(Gate.X(), 0)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |1> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
     r = QRegistry(1)
     r.apply_gates(Gate.H(), 0)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |+> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
     r = QRegistry(1)
     r.apply_gates(Gate.Z(), 0)
     r.apply_gates(Gate.H(), 0)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |-> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
     r = QRegistry(1)
     r.apply_gates(Gate.RX(np.pi/4), 0)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |ψ⟩ φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
     r = QRegistry(1)
     r.apply_gates(Gate.RY(np.pi/4), 0)
     phi, theta = r.bloch_angles()
     print(f"Bloch Sphere |ψ⟩ φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+    r.draw_bloch_sphere()
 
 def test_probabilities():
     # Probabilty Tests
