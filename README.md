@@ -358,7 +358,7 @@ _(Note: Complexity estimates assume dense density matrices of size N x N where N
 
 ## Notes on QDensity vs QRegistry
 
-* `QDensity` uses matrices of size 2<sup>n</sup> x 2<sup>n</sup>, while `QRegistry` uses vectors of size 2<sup>n</sup>. This means `QDensity` requires significantly more memory ($\mathcal{O}(4^{n})$ vs $\mathcal{O}(2^{n})$).
+* `QDensity` uses matrices of size 2<sup>n</sup> x 2<sup>n</sup>, while `QRegistry` uses vectors of size 2<sup>n</sup>. This means `QDensity` requires significantly more memory ( $\mathcal{O}(4^{n})$ vs $\mathcal{O}(2^{n})$ ).
 * Operations on density matrices (especially gate application involving matrix multiplication) are generally more computationally expensive than corresponding state vector operations (often $\mathcal{O}(4^{n})$ for `QDensity` vs $\mathcal{O}(2^{n})$ for `QRegistry`).
 * The main advantage of `QDensity` is its ability to represent mixed states, which is essential for describing subsystems or noisy quantum processes. `QRegistry` can only represent pure states.
 * Partial trace is a fundamental operation unique to the density matrix formalism, though it can be also calculated on the `QRegistry` class after generating its density matrix.
