@@ -45,29 +45,38 @@ def test_bell_states():
     print("Density Matrix:", r.density_matrix())
 
 def test_angles():
+    # Bloch Sphere Angles
+    # Link to check the results:
+    # https://algassert.com/quirk#circuit={%22cols%22:[[1,%22X%22,%22H%22,%22Z%22,%22X^%C2%BC%22,%22Y^%C2%BC%22],[1,1,1,%22H%22]]}
+    
     r = QRegistry(1)
-    phy, theta = r.bloch_angles()
-    print(f"Bloch Sphere |0> φ = {phy:0.4f} - θ = {theta:0.4f}\n")
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |0> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
 
     r.apply_gates(Gate.X(), 0)
-    phy, theta = r.bloch_angles()
-    print(f"Bloch Sphere |1> φ = {phy:0.4f} - θ = {theta:0.4f}\n")
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |1> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
 
     r = QRegistry(1)
     r.apply_gates(Gate.H(), 0)
-    theta, phi = r.bloch_angles()
-    print(f"Bloch Sphere |+> φ = {phy:0.4f} - θ = {theta:0.4f}\n")
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |+> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
 
     r = QRegistry(1)
-    r.apply_gates([Gate.Z(), Gate.H()], 0)
-    theta, phi = r.bloch_angles()
-    print(f"Bloch Sphere |-> φ = {phy:0.4f} - θ = {theta:0.4f}\n")
+    r.apply_gates(Gate.Z(), 0)
+    r.apply_gates(Gate.H(), 0)
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |-> φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
 
     r = QRegistry(1)
-    r.apply_gates(Gate.RY(np.pi/3), 0)
-    #r.apply_gates(Gate.RZ(np.pi/4), 0)
-    phy, theta = r.bloch_angles()
-    print(f"Bloch Sphere |ψ⟩ φ = {phy:0.4f} - θ = {theta:0.4f}\n")
+    r.apply_gates(Gate.RX(np.pi/4), 0)
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |ψ⟩ φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
+
+    r = QRegistry(1)
+    r.apply_gates(Gate.RY(np.pi/4), 0)
+    phi, theta = r.bloch_angles()
+    print(f"Bloch Sphere |ψ⟩ φ={phi*180/np.pi:.0f}º , θ={theta*180/np.pi:.0f}º\n")
 
 def test_probabilities():
     # Probabilty Tests
@@ -225,5 +234,5 @@ def test_density_partial_trace():
 
 if __name__ == '__main__':
 
-    test_density_partial_trace()
+    test_angles()
 

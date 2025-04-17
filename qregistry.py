@@ -191,10 +191,12 @@ class QRegistry:
         alpha = self.state[0, 0]
         beta = self.state[1, 0]
 
-        log(f"alpha: {alpha}, beta: {beta} \n")
+        log(f"|ψ⟩ = {alpha} |0⟩ + {beta} |1⟩")
 
         theta = 2 * np.arccos(np.abs(alpha))
-        phi = np.angle(beta * np.conjugate(alpha) / (np.abs(alpha) * np.abs(beta)))
+        gamma = np.angle(alpha) if np.abs(alpha) > 0 else np.angle(beta)
+        #phi = np.angle(beta * np.conjugate(alpha) / (np.abs(alpha) * np.abs(beta)))
+        phi = np.angle(beta) - gamma
 
         if np.isnan(phi):
             phi = 0
@@ -202,4 +204,4 @@ class QRegistry:
             phi += 2 * np.pi
 
         log(f"Bloch Sphere |-> φ = {phi:0.4f} - θ = {theta:0.4f}\n")
-        return theta, phi
+        return phi, theta
