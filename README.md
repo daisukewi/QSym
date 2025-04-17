@@ -103,6 +103,17 @@ registry.apply_gates(Gate.H(), [0, 1, 2])
 print("State after H(0), H(1), H(2):\n", registry.get_state())
 ```
 
+* **Applying a controlled gate to a qubit:** A single controlled gate can be applied to a single qubit, specifiying the control and target qubits. The method automatically applies the necessary SWAP operations to align the qubits for the gate application, taking into account the gate size.
+
+```python
+# Apply H to qubits 0 and a controlled gate to qubit 4 with control 0
+registry = QRegistry(5)
+registry.apply_c_gate(Gate.H(), 0)
+registry.apply_c_gate(Gate.CNOT(), 4, 0)
+
+print("State after H(0), CNOT(0, 4):\n", registry.get_state())
+```
+
 ### 4. Measure Qubits
 
 Simulate measurement using the `measure` or `parallel_measure` method. This method returns the measurement outcome (0 or 1 for each measured qubit) and collapses the state vector according to the outcome.
